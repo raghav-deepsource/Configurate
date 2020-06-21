@@ -15,19 +15,10 @@
  * limitations under the License.
  */
 /**
- * Object mapper to handle converting between raw nodes and POJOs.
- *
- * <p>The object mapper provides type serializers that can coerce data from
- * configuration-native types to the desired types, and back again. This removes
- * a lot of the uncertainty in trying to determine which value types are
- * supported by a specific configuration format.</p>
- *
- * <p>Object mappers work on fields in classes, components in records, and
- * similar data structures with custom {@link org.spongepowered.configurate.objectmapping.FieldDiscoverer}
- * implementations.</p>
+ * Metadata annotations for use with the object mapper.
  */
 @DefaultQualifier(NonNull.class)
-package org.spongepowered.configurate.objectmapping;
+package org.spongepowered.configurate.objectmapping.meta;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.framework.qual.DefaultQualifier;

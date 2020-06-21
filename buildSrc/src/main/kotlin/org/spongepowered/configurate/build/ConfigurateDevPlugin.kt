@@ -33,9 +33,8 @@ class ConfigurateDevPlugin : Plugin<Project> {
                 with(it.options) {
                     val version = JavaVersion.toVersion(it.toolChain.version)
                     compilerArgs.addAll(listOf("-Xlint:all", "-Xlint:-path", "-Xlint:-serial", "-parameters"))
-                    if (version.isJava9Compatible) {
-                        compilerArgs.addAll(listOf("--release", "8"))
-                    } else {
+                    release.set(targetVersion.ordinal + 1)
+                    if (!version.isJava9Compatible) {
                         errorprone.isEnabled.set(false)
                     }
                     isDeprecation = true

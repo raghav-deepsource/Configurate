@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spongepowered.configurate.serialize;
+package org.spongepowered.configurate.objectmapping.meta;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -23,16 +23,24 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the given type is capable of being serialized and deserialized
- * by an object mapper.
+ * Marks a field to be targeted by the object mapper.
  *
- * <p>Types with this annotation must be instantiable by the object mapper. By
- * default, this includes objects with zero-argument constructors and records,
- * but this may be extended using a customized
- * {@link org.spongepowered.configurate.objectmapping.ObjectMapper.Factory}.</p>
+ * <p>Optionally, a path override can be provided.</p>
+ *
+ * <p>This annotation is not required on fields unless the
+ * {@link NodeResolver#onlyWithSetting()} resolver filter has been applied to
+ * the loading object mapper.</p>
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
 @Documented
-public @interface ConfigSerializable {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Setting {
+
+    /**
+     * The path this setting is located at.
+     *
+     * @return The path
+     */
+    String value() default "";
+
 }

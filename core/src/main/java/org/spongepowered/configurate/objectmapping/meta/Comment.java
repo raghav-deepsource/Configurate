@@ -14,25 +14,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spongepowered.configurate.serialize;
+package org.spongepowered.configurate.objectmapping.meta;
 
-import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the given type is capable of being serialized and deserialized
- * by an object mapper.
+ * A comment that will be applied to a configuration node if possible.
  *
- * <p>Types with this annotation must be instantiable by the object mapper. By
- * default, this includes objects with zero-argument constructors and records,
- * but this may be extended using a customized
- * {@link org.spongepowered.configurate.objectmapping.ObjectMapper.Factory}.</p>
+ * <p>By default, this node will not override any user-defined comments.</p>
+ *
+ * <p>When used in conjunction with a ResourceBundleCommentProcessor</p>
  */
+@Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-@Documented
-public @interface ConfigSerializable {
+public @interface Comment {
+
+    /**
+     * The comment to use.
+     *
+     * @return comment
+     */
+    String value();
+
+    /**
+     * Whether or not to override existing comments on a node.
+     *
+     * @return if we should override.
+     */
+    boolean override() default false;
+
 }

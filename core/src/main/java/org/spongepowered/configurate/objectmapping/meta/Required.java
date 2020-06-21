@@ -14,7 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spongepowered.configurate.serialize;
+package org.spongepowered.configurate.objectmapping.meta;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.framework.qual.SubtypeOf;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -23,16 +26,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the given type is capable of being serialized and deserialized
- * by an object mapper.
+ * Indicates that a field is required.
  *
- * <p>Types with this annotation must be instantiable by the object mapper. By
- * default, this includes objects with zero-argument constructors and records,
- * but this may be extended using a customized
- * {@link org.spongepowered.configurate.objectmapping.ObjectMapper.Factory}.</p>
+ * <p>Loading will fail if this field has a null value.</p>
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
 @Documented
-public @interface ConfigSerializable {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+@SubtypeOf(NonNull.class)
+public @interface Required {
 }

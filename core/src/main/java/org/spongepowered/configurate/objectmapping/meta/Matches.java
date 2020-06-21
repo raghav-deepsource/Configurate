@@ -14,7 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spongepowered.configurate.serialize;
+package org.spongepowered.configurate.objectmapping.meta;
+
+import org.checkerframework.checker.regex.qual.Regex;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -22,17 +24,30 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Indicates that the given type is capable of being serialized and deserialized
- * by an object mapper.
- *
- * <p>Types with this annotation must be instantiable by the object mapper. By
- * default, this includes objects with zero-argument constructors and records,
- * but this may be extended using a customized
- * {@link org.spongepowered.configurate.objectmapping.ObjectMapper.Factory}.</p>
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
 @Documented
-public @interface ConfigSerializable {
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD, ElementType.TYPE_USE})
+public @interface Matches {
+
+    /**
+     * Pattern to test string value against.
+     *
+     * @return pattern to test against
+     */
+    @Regex String value();
+
+    /**
+     * Message to throw in an exception when a match fails.
+     *
+     * <p>This message will be formatted as a MessageFormat with two
+     * parameters:</p>
+     * <ol start="0">
+     *     <li>the input string</li>
+     *     <li>the pattern being matched</li>
+     * </ol>
+     *
+     * @return message format.
+     */
+    String failureMessage() default "";
+
 }
