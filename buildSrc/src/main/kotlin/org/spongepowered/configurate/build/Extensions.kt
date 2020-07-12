@@ -42,7 +42,7 @@ fun Javadoc.applyCommonAttributes() {
             "https://fasterxml.github.io/jackson-core/javadoc/2.10/",
             "https://checkerframework.org/api/"
         )
-        options.source = "1.8"
+        // options.source = BASE_TARGET.toString() // TODO
         if (version.isJava9Compatible) {
             options.addBooleanOption("html5", true)
         }
