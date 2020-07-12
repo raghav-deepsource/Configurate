@@ -99,6 +99,9 @@ In order to build Configurate you simply need to run the `gradle build` command.
  While the entire project can be built on Java 8, some tests require at least Java 14 to run. Our CI will run these for you if you don't have the
   latest JDK set up locally.
 
+Configurate requires at least Java 10 to build, but will run on Java 8 or newer. If cross-compilation is configured, either by setting the `javaHome.<version>` Gradle property or `JAVA_HOME_<version>` environment variable for each installed JDK, tests will be run using all variants of Configurate classes.
+Cross-compilation can uncover rare issues, but is not required for most changes. For pull requests our automated build environment will run these tests for on every applicable JDK version for you.
+
 #### Pull Requests
 We love PRs! However, when contributing, here are some things to keep in mind:
 
