@@ -59,8 +59,8 @@ existingSets.forEach { set ->
     // and an example at https://github.com/melix/mrjar-gradle
 
     MULTIRELEASE_TARGETS.forEach { targetVersion ->
-        if (targetVersion <= BASE_TARGET) {
-            throw GradleException("Cannot build version $targetVersion as it is lower than (or equal to?) the project's base version ($BASE_TARGET)")
+        if (targetVersion <= org.spongepowered.configurate.build.BASE_TARGET) {
+            throw GradleException("Cannot build version $targetVersion as it is lower than (or equal to?) the project's base version (${org.spongepowered.configurate.build.BASE_TARGET})")
         } else if (targetVersion > JavaVersion.current()) {
             throw GradleException("Java version $targetVersion is required to build this project, and you are running ${JavaVersion.current()}!")
         }
@@ -70,7 +70,6 @@ existingSets.forEach { set ->
             version.java.srcDirs(project.projectDir.resolve("src/${set.name}/$versionId"))
             // Depend on main source set
             project.dependencies.add(version.implementationConfigurationName, set.output.classesDirs)?.apply {
-                println(this::class)
                 // this.builtBy(tasks.named(set.compileJavaTaskName))
             }
             // Set compatibility
