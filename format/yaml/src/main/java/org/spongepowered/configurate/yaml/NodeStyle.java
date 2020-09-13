@@ -45,4 +45,17 @@ public enum NodeStyle {
         return style == null ? DumperOptions.FlowStyle.AUTO : style.snake;
     }
 
+    static @Nullable NodeStyle fromSnakeYaml(final DumperOptions.FlowStyle style) {
+        switch (style) {
+            case AUTO:
+                return null;
+            case BLOCK:
+                return BLOCK;
+            case FLOW:
+                return FLOW;
+            default:
+                throw new IllegalArgumentException("Unknown style " + style);
+        }
+    }
+
 }

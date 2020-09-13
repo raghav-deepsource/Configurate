@@ -17,15 +17,26 @@
 package org.spongepowered.configurate.yaml;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+<<<<<<< HEAD
 import org.spongepowered.configurate.CommentedConfigurationNode;
+=======
+import org.spongepowered.configurate.BasicConfigurationNode;
+import org.spongepowered.configurate.ConfigurateException;
+>>>>>>> 9e79c918... yaml: Rewrite using event-based loading and saving
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.ConfigurationOptions;
+import org.spongepowered.configurate.RepresentationHint;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 import org.spongepowered.configurate.loader.CommentHandler;
 import org.spongepowered.configurate.loader.CommentHandlers;
+import org.spongepowered.configurate.loader.ParsingException;
 import org.spongepowered.configurate.util.UnmodifiableCollections;
 import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.emitter.Emitter;
+import org.yaml.snakeyaml.reader.StreamReader;
+import org.yaml.snakeyaml.resolver.Resolver;
 
 import java.io.BufferedReader;
 import java.io.Writer;
@@ -40,6 +51,12 @@ import java.util.Set;
  *
  */
 public final class YamlConfigurationLoader extends AbstractConfigurationLoader<CommentedConfigurationNode> {
+
+    public static final RepresentationHint<String> ANCHOR_ID = RepresentationHint.of("anchor-id", String.class);
+
+    public static final RepresentationHint<ScalarStyle> SCALAR_STYLE = RepresentationHint.of("scalar-style", ScalarStyle.class);
+
+    public static final RepresentationHint<NodeStyle> NODE_STYLE = RepresentationHint.of("node-style", NodeStyle.class);
 
     /**
      * YAML native types from <a href="https://yaml.org/type/">YAML 1.1 Global tags</a>.
@@ -137,23 +154,36 @@ public final class YamlConfigurationLoader extends AbstractConfigurationLoader<C
         }
     }
 
-    private final ThreadLocal<Yaml> yaml;
+    private final ThreadLocal<Constructor> constructor;
+    private final DumperOptions options;
+    private final YamlVisitor visitor;
+    private final LoaderOptions loader;
+    private final Resolver resolver;
 
     private YamlConfigurationLoader(final Builder builder) {
         super(builder, new CommentHandler[] {CommentHandlers.HASH});
         final DumperOptions opts = builder.options;
         opts.setDefaultFlowStyle(NodeStyle.asSnakeYaml(builder.style));
-        this.yaml = ThreadLocal.withInitial(() -> new ConfigurateYaml(opts));
+        this.options = opts;
+        this.loader = new LoaderOptions();
+        this.resolver = new Resolver();
+        this.visitor = new YamlVisitor(this.resolver, this.options);
+        this.constructor = ThreadLocal.withInitial(Constructor::new);
     }
 
     @Override
-    protected void loadInternal(final CommentedConfigurationNode node, final BufferedReader reader) {
-        node.raw(this.yaml.get().load(reader));
+    protected void loadInternal(final CommentedConfigurationNode node, final BufferedReader reader) throws ParsingException {
+        // Match the superclass implementation, except we substitute our own scanner implementation
+        final StreamReader stream = new StreamReader(reader);
+        final YamlParser parser = new YamlParser(new ConfigurateScanner(stream));
+        parser.singleDocumentStream(node);
     }
 
     @Override
-    protected void saveInternal(final ConfigurationNode node, final Writer writer) {
-        this.yaml.get().dump(node.rawScalar(), writer);
+    protected void saveInternal(final ConfigurationNode node, final Writer writer) throws ConfigurateException {
+        final Emitter emitter = new Emitter(writer, this.options);
+        final YamlVisitor.State state = new YamlVisitor.State(emitter);
+        node.visit(this.visitor, state);
     }
 
     @Override
