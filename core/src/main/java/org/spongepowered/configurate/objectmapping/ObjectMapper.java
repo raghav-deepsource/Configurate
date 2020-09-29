@@ -91,7 +91,10 @@ public interface ObjectMapper<V> {
      *
      * @param source object source
      * @return new instance
-     * @throws ObjectMappingException if any invalid data present
+     * @throws ObjectMappingException if any invalid data is present. Loading is
+     *      done in stages, so any deserialization errors will occur before
+     *      anything is written to objects.
+     *
      */
     V load(ConfigurationNode source) throws ObjectMappingException;
 
@@ -100,6 +103,7 @@ public interface ObjectMapper<V> {
      *
      * @param value value type
      * @param target destination
+     * @throws ObjectMappingException if unable to fully save
      */
     void save(V value, ConfigurationNode target) throws ObjectMappingException;
 
@@ -111,7 +115,7 @@ public interface ObjectMapper<V> {
     List<? extends FieldData<?, V>> getFields();
 
     /**
-     * The generic type of value that will be created.
+     * The generic type of object that this mapper instance handles.
      *
      * @return object type
      */
@@ -140,6 +144,7 @@ public interface ObjectMapper<V> {
          *
          * @param value existing instance
          * @param node node to load from
+         * @throws ObjectMappingException if unable to deserialize data
          */
         void load(V value, ConfigurationNode node) throws ObjectMappingException;
     }
@@ -149,16 +154,48 @@ public interface ObjectMapper<V> {
      */
     interface Factory {
 
+        /**
+         * Get an object mapper for the provided type.
+         *
+         * <p>The provided type cannot be a <em>raw type</em>.</p>
+         *
+         * @param type token holding the mapped type
+         * @param <V> mapped type
+         * @return a mapper for the provided type
+         * @throws ObjectMappingException if the type does not correspond to a
+         *     mappable object
+         */
         @SuppressWarnings("unchecked")
         default <V> ObjectMapper<V> get(TypeToken<V> type) throws ObjectMappingException {
             return (ObjectMapper<V>) get(type.getType());
         }
 
+        /**
+         * Get an object mapper for the unparameterized type {@code clazz}.
+         *
+         * <p>The provided type cannot be a <em>raw type</em>.</p>
+         *
+         * @param clazz class of the mapped type
+         * @param <V> mapped type
+         * @return a mapper for the provided type
+         * @throws ObjectMappingException if the type does not correspond to a
+         *     mappable object
+         */
         @SuppressWarnings("unchecked")
         default <V> ObjectMapper<V> get(Class<V> clazz) throws ObjectMappingException {
             return (ObjectMapper<V>) get((Type) clazz);
         }
 
+        /**
+         * Get the object mapper for the provided type.
+         *
+         * <p>The provided type cannot be a <em>raw type</em>.</p>
+         *
+         * @param type object type.
+         * @return a mapper for the provided type
+         * @throws ObjectMappingException if the type does not correspond to a
+         *     mappable object
+         */
         ObjectMapper<?> get(Type type) throws ObjectMappingException;
 
         /**
@@ -217,6 +254,9 @@ public interface ObjectMapper<V> {
             /**
              * Register a {@link Processor} that will process fields after write.
              *
+             * <p>All value types will be tested against types normalized to
+             * their boxed variants.</p>
+             *
              * @param definition annotation providing data
              * @param valueType value types the processor will handle
              * @param factory factory for callback function
@@ -243,6 +283,9 @@ public interface ObjectMapper<V> {
 
             /**
              * Register a {@link Constraint} that will be used to validate fields.
+             *
+             * <p>All value types will be tested against types normalized to
+             * their boxed variants.</p>
              *
              * @param definition annotations providing data
              * @param valueType value types the processor will handle

@@ -91,9 +91,9 @@ annotation class Fancy(val value: String, val message: String = "")
  * See [KT-39369](https://youtrack.jetbrains.com/issue/KT-39369) for details.
  */
 object DataClassFieldDiscoverer : FieldDiscoverer<MutableMap<KParameter, Any>> {
-    override fun <V> populate(
+    override fun <V> discover(
         target: AnnotatedType,
-        fieldMaker: FieldDiscoverer.FieldCollector<MutableMap<KParameter, Any>, V>
+        collector: FieldDiscoverer.FieldCollector<MutableMap<KParameter, Any>, V>
     ): FieldDiscoverer.InstanceFactory<MutableMap<KParameter, Any>>? {
         val klass = erase(target.type).kotlin
         if (!klass.isData) {
@@ -110,7 +110,7 @@ object DataClassFieldDiscoverer : FieldDiscoverer<MutableMap<KParameter, Any>> {
             val field = properties.first { it.name == param.name }
 
             @Suppress("UNCHECKED_CAST")
-            fieldMaker.accept(
+            collector.accept(
                 param.name,
                 resolvedType,
                 combinedAnnotations(param.type.javaElement, param.javaElement, field.javaField), // type, backing field, etc

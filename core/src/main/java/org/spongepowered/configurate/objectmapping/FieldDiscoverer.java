@@ -30,6 +30,8 @@ import java.util.function.Supplier;
  * Interface that gathers metadata from classes.
  *
  * <p>Any type of data object can be added this way.</p>
+ *
+ * @param <I> intermediate data type
  */
 public interface FieldDiscoverer<I> {
 
@@ -68,8 +70,22 @@ public interface FieldDiscoverer<I> {
         return PojoFieldDiscoverer.EMPTY_CONSTRUCTOR_INSTANCE;
     }
 
-    <V> @Nullable InstanceFactory<I> populate(AnnotatedType target, FieldCollector<I, V> fieldMaker)
-            throws ObjectMappingException;
+    /**
+     * Inspect the {@code target} type for fields to be supplied to
+     * the {@code collector}.
+     *
+     * <p>If the target type is handleable, a non-null value must be returned.
+     * Fields can only be collected from one source at the moment, so if the
+     * instance factory is null any discovered fields will be discarded.</p>
+     *
+     * @param target type to inspect
+     * @param collector collector for discovered fields.
+     * @param <V> object type
+     * @return a factory for handling the construction of object instances, or
+     *      {@code null} if {@code target} is not of a handleable type.
+     * @throws ObjectMappingException if any fields have invalid data
+     */
+    <V> @Nullable InstanceFactory<I> discover(AnnotatedType target, FieldCollector<I, V> collector) throws ObjectMappingException;
 
     /**
      * A handler for controlling the deserialization process for an object.

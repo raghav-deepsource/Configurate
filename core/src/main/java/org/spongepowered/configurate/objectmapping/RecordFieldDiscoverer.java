@@ -87,7 +87,7 @@ final class RecordFieldDiscoverer implements FieldDiscoverer<Object[]> {
      * @return an instance factory if this class is a record
      */
     @Override
-    public <V> @Nullable InstanceFactory<Object[]> populate(final AnnotatedType target, final FieldCollector<Object[], V> fieldMaker)
+    public <V> @Nullable InstanceFactory<Object[]> discover(final AnnotatedType target, final FieldCollector<Object[], V> collector)
             throws ObjectMappingException {
         if (RECORD_COMPONENT_GET_ACCESSOR != null) {
             final Class<?> clazz = erase(target.getType());
@@ -113,7 +113,7 @@ final class RecordFieldDiscoverer implements FieldDiscoverer<Object[]> {
                         final AnnotatedType resolvedType = resolveExactType(genericType, target);
                         final AnnotatedElement annotationContainer = Typing.combinedAnnotations(component, backingField, accessor);
                         final int targetIdx = i;
-                        fieldMaker.accept(name, resolvedType, annotationContainer,
+                        collector.accept(name, resolvedType, annotationContainer,
                             (intermediate, el) -> intermediate[targetIdx] = el, accessor::invoke);
                     }
 

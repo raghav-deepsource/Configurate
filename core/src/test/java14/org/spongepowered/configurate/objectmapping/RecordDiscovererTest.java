@@ -59,14 +59,15 @@ public class RecordDiscovererTest {
         assertEquals(32, target.getNode("testable").getValue());
     }
 
-    @ConfigSerializable
-    record AnnotatedRecord(
-            @Required TestRecord element,
-            @Comment("The most url") URL fetchLoc
-    ) {}
 
     @Test
     public void testAnnotationsApplied() throws ObjectMappingException, MalformedURLException {
+        @ConfigSerializable
+        record AnnotatedRecord(
+                @Required TestRecord element,
+                @Comment("The most url") URL fetchLoc
+        ) {}
+
         final var record = new AnnotatedRecord(new TestRecord("nested", 0xFACE),
                 new URL("https://spongepowered.org/"));
 

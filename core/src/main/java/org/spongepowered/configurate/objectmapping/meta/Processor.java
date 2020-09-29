@@ -37,6 +37,13 @@ public interface Processor<V> {
      */
     void process(V value, ConfigurationNode destination);
 
+    /**
+     * Provider to, given an annotation instance and the type it's on,
+     * create a {@link Processor}.
+     *
+     * @param <A> annotation type
+     * @param <T> handled value type
+     */
     @FunctionalInterface
     interface Factory<A extends Annotation, T> {
 

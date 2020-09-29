@@ -17,6 +17,7 @@
 package org.spongepowered.configurate.objectmapping;
 
 import static io.leangen.geantyref.GenericTypeReflector.annotate;
+import static io.leangen.geantyref.GenericTypeReflector.box;
 import static io.leangen.geantyref.GenericTypeReflector.isMissingTypeParameters;
 import static io.leangen.geantyref.GenericTypeReflector.isSuperType;
 import static java.util.Objects.requireNonNull;
@@ -115,7 +116,7 @@ final class ObjectMapperFactoryImpl implements ObjectMapper.Factory {
 
     private <I, V> @Nullable ObjectMapper<V> newMapper(final Type type, final FieldDiscoverer<I> discoverer) throws ObjectMappingException {
         final List<FieldData<I, V>> fields = new ArrayList<>();
-        final FieldDiscoverer.@Nullable InstanceFactory<I> candidate = discoverer.<V>populate(annotate(type),
+        final FieldDiscoverer.@Nullable InstanceFactory<I> candidate = discoverer.<V>discover(annotate(type),
             (name, fieldType, container, deserializer, serializer) -> makeData(fields, name, fieldType, container, deserializer, serializer));
 
         if (candidate == null) {
@@ -155,13 +156,14 @@ final class ObjectMapperFactoryImpl implements ObjectMapper.Factory {
             return;
         }
 
+        final Type normalizedType = box(type.getType());
         final List<Constraint<?>> constraints = new ArrayList<>();
         final List<Processor<?>> processors = new ArrayList<>();
         for (Annotation annotation : container.getAnnotations()) {
             final List<Definition<?, ?, ? extends Constraint.Factory<?, ?>>> definitions = this.constraints.get(annotation.annotationType());
             if (definitions != null) {
                 for (final Definition<?, ?, ? extends Constraint.Factory<?, ?>> def : definitions) {
-                    if (isSuperType(def.type(), type.getType())) {
+                    if (isSuperType(def.type(), normalizedType)) {
                         constraints.add(((Constraint.Factory) def.factory()).make(annotation, type.getType()));
                     }
                 }
@@ -170,7 +172,7 @@ final class ObjectMapperFactoryImpl implements ObjectMapper.Factory {
             final List<Definition<?, ?, ? extends Processor.Factory<?, ?>>> processorDefs = this.processors.get(annotation.annotationType());
             if (processorDefs != null) {
                 for (final Definition<?, ?, ? extends Processor.Factory<?, ?>> processorDef : processorDefs) {
-                    if (isSuperType(processorDef.type(), type.getType())) {
+                    if (isSuperType(processorDef.type(), normalizedType)) {
                         processors.add(((Processor.Factory) processorDef.factory()).make(annotation, type.getType()));
                     }
                 }

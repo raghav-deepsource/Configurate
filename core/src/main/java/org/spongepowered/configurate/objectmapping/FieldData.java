@@ -125,36 +125,12 @@ public abstract class FieldData<I, O> {
         }
     }
 
-    /**
-     * Extract the value of this field from {@code instance} and serialize it.
-     *
-     * @param instance Object instance
-     * @param node node to serialize to
-     * @throws ObjectMappingException error
-     */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public void serialize(final O instance, final ConfigurationNode node) throws ObjectMappingException {
-        final @Nullable Object fieldVal;
-        try {
-            fieldVal = this.serializer().apply(instance);
-        } catch (final ObjectMappingException ex) {
-            throw ex;
-        } catch (final Exception ex) {
-            throw new ObjectMappingException(ex);
+    TypeSerializer<?> serializerFrom(final ConfigurationNode node) throws ObjectMappingException {
+        final @Nullable TypeSerializer<?> serial = node.getOptions().getSerializers().get(resolvedType().getType());
+        if (serial == null) {
+            throw new ObjectMappingException("No TypeSerializer found for field " + name() + " of type " + resolvedType().getType());
         }
-
-        if (fieldVal == null) {
-            node.setValue(null);
-        } else {
-            final @Nullable TypeSerializer serial = node.getOptions().getSerializers().get(this.resolvedType().getType());
-            if (serial == null) {
-                throw new ObjectMappingException("No TypeSerializer found for field " + this.name() + " of type " + this.resolvedType());
-            }
-            serial.serialize(this.resolvedType().getType(), fieldVal, node);
-            for (Processor<?> processor : this.processors()) {
-                ((Processor<Object>) processor).process(fieldVal, node);
-            }
-        }
+        return serial;
     }
 
     /**

@@ -48,6 +48,14 @@ public interface Constraint<V> {
      * @param <V> data type
      */
     interface Factory<A extends Annotation, V> {
+
+        /**
+         * Create a new specialized constraint.
+         *
+         * @param data annotation with metadata
+         * @param type annotated type. is a subtype of {@code V}
+         * @return new constraint
+         */
         Constraint<V> make(A data, Type type);
     }
 
@@ -100,7 +108,7 @@ public interface Constraint<V> {
     static Constraint.Factory<Matches, String> localizedPattern(final ResourceBundle bundle) {
         return (data, type) -> {
             final Pattern test = Pattern.compile(data.value());
-            final MessageFormat format = new MessageFormat(Localization.key(bundle, data.failureMessage()));
+            final MessageFormat format = new MessageFormat(Localization.key(bundle, data.failureMessage()), bundle.getLocale());
             return value -> {
                 if (value != null) {
                     final Matcher match = test.matcher(value);

@@ -55,7 +55,7 @@ class ObjectMappingTest {
 
     data class AnnotatedTest(
         @Comment("sad") val name: String,
-        val attributes: @Matches("[A-Z]") String
+        @Matches("[A-Z]") val attributes: String
     )
 
     @Test

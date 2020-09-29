@@ -50,8 +50,6 @@ class ConfigurateDevPlugin : Plugin<Project> {
             extensions.configure(JavaPluginExtension::class.java) {
                 it.withJavadocJar()
                 it.withSourcesJar()
-                it.sourceCompatibility = targetVersion
-                it.targetCompatibility = targetVersion
             }
 
             tasks.withType(Javadoc::class.java).configureEach {

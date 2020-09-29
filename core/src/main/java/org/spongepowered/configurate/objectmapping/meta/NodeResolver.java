@@ -45,6 +45,16 @@ public interface NodeResolver {
      * Provides fields.
      */
     interface Factory {
+
+        /**
+         * Create a function that resolves a child node from its parent.
+         *
+         * @param name field name
+         * @param element annotations on the field
+         * @return {@code null} to continue, {@link #SKIP_FIELD} to stop further
+         *     processing and exclude this field from serialization, or a
+         *     resolver for a node.
+         */
         @Nullable NodeResolver make(String name, AnnotatedElement element);
     }
 

@@ -59,8 +59,8 @@ class PojoFieldDiscoverer implements FieldDiscoverer<Map<Field, Object>> {
     }
 
     @Override
-    public <V> @Nullable InstanceFactory<Map<Field, Object>> populate(final AnnotatedType target,
-            final FieldCollector<Map<Field, Object>, V> fieldMaker) throws ObjectMappingException {
+    public <V> @Nullable InstanceFactory<Map<Field, Object>> discover(final AnnotatedType target,
+            final FieldCollector<Map<Field, Object>, V> collector) throws ObjectMappingException {
         final Class<?> clazz = erase(target.getType());
         if (clazz.isInterface()) {
             throw new ObjectMappingException("ObjectMapper can only work with concrete types");
@@ -71,7 +71,7 @@ class PojoFieldDiscoverer implements FieldDiscoverer<Map<Field, Object>> {
         AnnotatedType collectType = target;
         Class<?> collectClass = clazz;
         while (true) {
-            collectFields(collectType, fieldMaker);
+            collectFields(collectType, collector);
             collectClass = collectClass.getSuperclass();
             if (collectClass.equals(Object.class)) {
                 break;

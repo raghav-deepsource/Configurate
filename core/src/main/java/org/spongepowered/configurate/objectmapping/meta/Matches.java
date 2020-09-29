@@ -24,9 +24,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Constrains a field value to ensure it matches the provided expression.
+ *
+ * <p>This constraint will always pass with an empty field. See {@link Required}
+ * to enforce a non-null value.</p>
+ */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.TYPE_USE})
+@Target(ElementType.FIELD)
 public @interface Matches {
 
     /**
