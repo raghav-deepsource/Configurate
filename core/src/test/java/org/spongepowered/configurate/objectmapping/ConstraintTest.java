@@ -65,6 +65,7 @@ public class ConstraintTest {
                     assertEquals(expected, result.mandatory);
                     assertNull(result.optional);
                 },
+                // both present
                 () -> {
                     final UUID optionalVal = UUID.randomUUID();
                     final UUID requiredVal = UUID.randomUUID();
@@ -75,7 +76,6 @@ public class ConstraintTest {
                     assertEquals(optionalVal, result.optional);
                     assertEquals(requiredVal, result.mandatory);
                 }
-                // both present
         );
     }
 

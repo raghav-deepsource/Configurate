@@ -49,7 +49,6 @@ public class ProcessorTest {
         assertEquals("Another important option!", target.getNode("second").getComment());
     }
 
-
     static class TestCommentLocalized {
         @Comment("configurate.test.comment.one") int hello = 1;
         @Comment("Missing comment passthrough") int goodbye = 2;
