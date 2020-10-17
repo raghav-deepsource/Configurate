@@ -1,12 +1,15 @@
 import net.ltgt.gradle.errorprone.errorprone
 import org.spongepowered.configurate.build.core
+import org.spongepowered.configurate.build.useAutoValue
 
 plugins {
     id("org.spongepowered.configurate.build.component")
 }
 
+useAutoValue()
 dependencies {
     api(core())
+    // When updating snakeyaml, check ConfigurateScanner for changes against upstream
     implementation("org.yaml:snakeyaml:1.27")
 }
 

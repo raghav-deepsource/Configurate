@@ -17,6 +17,7 @@
 package org.spongepowered.configurate.yaml;
 
 import org.spongepowered.configurate.BasicConfigurationNode;
+import org.spongepowered.configurate.CommentedConfigurationNodeIntermediary;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.ConfigurationNodeFactory;
 import org.yaml.snakeyaml.events.AliasEvent;
@@ -25,7 +26,6 @@ import org.yaml.snakeyaml.events.Event;
 import org.yaml.snakeyaml.events.NodeEvent;
 import org.yaml.snakeyaml.events.ScalarEvent;
 import org.yaml.snakeyaml.parser.ParserImpl;
-import org.yaml.snakeyaml.scanner.Scanner;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -41,8 +41,25 @@ final class YamlParser extends ParserImpl {
 
     private final Map<String, ConfigurationNode> aliases = new HashMap<>();
 
-    YamlParser(final Scanner reader) {
+    YamlParser(final ConfigurateScanner reader) {
         super(reader);
+    }
+
+    // ignore comments -- currently used to continue accumulating
+    // while constructing a mapping key
+    private boolean suppressComments;
+
+    private void applyComment(final ConfigurationNode node) {
+        if (this.suppressComments) {
+            return;
+        }
+        if (node instanceof CommentedConfigurationNodeIntermediary<?>) {
+            ((CommentedConfigurationNodeIntermediary<?>) node).comment(this.scanner().popComments());
+        }
+    }
+
+    private ConfigurateScanner scanner() {
+        return (ConfigurateScanner) this.scanner;
     }
 
     Event requireEvent(final Event.ID type) throws IOException {
@@ -98,6 +115,7 @@ final class YamlParser extends ParserImpl {
 
     public void document(final ConfigurationNode node) throws IOException {
         requireEvent(Event.ID.DocumentStart);
+        this.scanner().setCaptureComments(node instanceof CommentedConfigurationNodeIntermediary<?>);
         try {
             value(node);
         } finally {
@@ -107,6 +125,10 @@ final class YamlParser extends ParserImpl {
     }
 
     void value(final ConfigurationNode node) throws IOException {
+        // We have to capture the comment before we peek ahead
+        // peeking ahead will start consuming the next event and its comments
+        applyComment(node);
+
         final Event peeked = peekEvent();
         // extract event metadata
         if (peeked instanceof NodeEvent && !(peeked instanceof AliasEvent)) {
@@ -151,12 +173,17 @@ final class YamlParser extends ParserImpl {
         node.raw(Collections.emptyMap());
         final ConfigurationNode keyHolder = BasicConfigurationNode.root(node.options());
         while (!checkEvent(Event.ID.MappingEnd)) {
-            value(keyHolder);
+            this.suppressComments = true;
+            try {
+                value(keyHolder);
+            } finally {
+                this.suppressComments = false;
+            }
             final ConfigurationNode child = node.node(keyHolder.raw());
             if (!child.virtual()) { // duplicate keys are forbidden (3.2.1.3)
-                throw new IOException("Duplicate key '" + keyHolder.raw() + "' encountered!");
+                throw new IOException("Duplicate key '" + child.key() + "' encountered!");
             }
-            value(node.node(keyHolder.raw()));
+            value(node.node(child));
         }
 
         requireEvent(Event.ID.MappingEnd);

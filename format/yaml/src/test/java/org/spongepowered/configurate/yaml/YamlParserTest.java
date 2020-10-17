@@ -17,36 +17,22 @@
 package org.spongepowered.configurate.yaml;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
-import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurationNode;
-import org.yaml.snakeyaml.reader.StreamReader;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
 
-public class YamlParserTest {
+public class YamlParserTest implements YamlTest {
 
-    private ConfigurationNode parseString(final String input) throws IOException {
-        final YamlParser parser = new YamlParser(new ConfigurateScanner(new StreamReader(input)));
-        final ConfigurationNode result = CommentedConfigurationNode.root();
-        parser.singleDocumentStream(result);
-        return result;
-    }
-
-    private ConfigurationNode parseResource(final URL url) throws IOException {
-        assertNotNull(url, "Expected resource is missing");
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
-            final YamlParser parser = new YamlParser(new ConfigurateScanner(new StreamReader(reader)));
-            final ConfigurationNode result = CommentedConfigurationNode.root();
-            parser.singleDocumentStream(result);
-            return result;
-        }
+    @Test
+    void testEmptyDocument() throws IOException {
+        final ConfigurationNode result = parseString("");
+        assertTrue(result.isEmpty());
+        assertNull(result.getValue());
     }
 
     @Test

@@ -2,9 +2,11 @@ package org.spongepowered.configurate.build
 
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.external.javadoc.StandardJavadocDocletOptions
 import org.gradle.kotlin.dsl.maven
@@ -47,5 +49,13 @@ fun Javadoc.applyCommonAttributes() {
             options.addBooleanOption("html5", true)
         }
         options.linkSource()
+    }
+}
+
+fun Project.useAutoValue() {
+    val autoValueVersion = properties["autoValueVersion"]
+    dependencies.apply {
+        add(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME, "com.google.auto.value:auto-value-annotations:$autoValueVersion")
+        add(JavaPlugin.ANNOTATION_PROCESSOR_CONFIGURATION_NAME, "com.google.auto.value:auto-value:$autoValueVersion")
     }
 }

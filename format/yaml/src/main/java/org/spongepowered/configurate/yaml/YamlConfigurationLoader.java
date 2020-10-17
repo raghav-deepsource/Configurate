@@ -17,12 +17,8 @@
 package org.spongepowered.configurate.yaml;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-<<<<<<< HEAD
 import org.spongepowered.configurate.CommentedConfigurationNode;
-=======
-import org.spongepowered.configurate.BasicConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
->>>>>>> 9e79c918... yaml: Rewrite using event-based loading and saving
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.RepresentationHint;

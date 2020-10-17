@@ -238,6 +238,46 @@ final class ConfigurateScanner implements Scanner { // Configurate: rename + pac
      */
     private Map<Integer, SimpleKey> possibleSimpleKeys;
 
+    // Configurate start -- comment capture
+    private boolean captureComments = true;
+    private final StringBuilder comments = new StringBuilder();
+
+    public String popComments() {
+        if (this.comments.length() == 0) {
+            return null;
+        } else {
+            final String ret = this.comments.toString();
+            this.comments.delete(0, Integer.MAX_VALUE);
+            return ret;
+        }
+    }
+
+    private void pushComment(int length) {
+        if (!this.captureComments) {
+            this.reader.forward(length);
+            return;
+        }
+
+        if (this.comments.length() > 0) {
+            this.comments.append(org.spongepowered.configurate.loader.AbstractConfigurationLoader.CONFIGURATE_LINE_SEPARATOR);
+        }
+        final String comment = this.reader.prefixForward(length);
+        if (comment.startsWith(" ")) {
+            this.comments.append(comment, 1, comment.length());
+        } else {
+            this.comments.append(comment);
+        }
+    }
+
+    void setCaptureComments(boolean capture) {
+        this.captureComments = capture;
+        if (!capture && this.comments.length() > 0) {
+            this.comments.delete(0, Integer.MAX_VALUE);
+        }
+    }
+
+    // Configurate end -- comment capture
+
     public ConfigurateScanner(StreamReader reader) { // Configurate: rename
         this.reader = reader;
         this.tokens = new ArrayList<Token>(100);
@@ -1222,11 +1262,12 @@ final class ConfigurateScanner implements Scanner { // Configurate: rename + pac
             // past the comment.
             if (reader.peek() == '#') {
                 ff = 0;
+                reader.forward(); // skip comment character
                 while (Constant.NULL_OR_LINEBR.hasNo(reader.peek(ff))) {
                     ff++;
                 }
                 if (ff > 0) {
-                    reader.forward(ff);
+                    this.pushComment(ff); // Configurate: capture comment
                 }
             }
             // If we scanned a line break, then (depending on flow level),
@@ -1428,9 +1469,14 @@ final class ConfigurateScanner implements Scanner { // Configurate: rename + pac
             reader.forward();
         }
         if (reader.peek() == '#') {
+            // Configurate start -- comments
+            reader.forward(); // skip '#'
+            int ff = 0;
             while (Constant.NULL_OR_LINEBR.hasNo(reader.peek())) {
-                reader.forward();
+                ff++;
             }
+            if (ff > 0) pushComment(ff);
+            // Configurate end
         }
         int c = reader.peek();
         String lineBreak = scanLineBreak();
@@ -1743,9 +1789,15 @@ final class ConfigurateScanner implements Scanner { // Configurate: rename + pac
 
         // If a comment occurs, scan to just before the end of line.
         if (reader.peek() == '#') {
+            // Configurate start -- comments
+            reader.forward();
+
+            int ff = 0;
             while (Constant.NULL_OR_LINEBR.hasNo(reader.peek())) {
-                reader.forward();
+                ff++;
             }
+            if (ff > 0) pushComment(ff);
+            // Configurate end
         }
         // If the next character is not a null or line break, an error has
         // occurred.
@@ -2008,7 +2060,7 @@ final class ConfigurateScanner implements Scanner { // Configurate: rename + pac
             int c;
             int length = 0;
             // A comment indicates the end of the scalar.
-            if (reader.peek() == '#') {
+            if (reader.peek() == '#') { // Configurate: comment captured in scanToNextToken
                 break;
             }
             while (true) {
@@ -2029,7 +2081,7 @@ final class ConfigurateScanner implements Scanner { // Configurate: rename + pac
             endMark = reader.getMark();
             spaces = scanPlainSpaces();
             // System.out.printf("spaces[%s]\n", spaces);
-            if (spaces.length() == 0 || reader.peek() == '#'
+            if (spaces.length() == 0 || reader.peek() == '#' // Configurate: comment captured in next token
                     || (this.flowLevel == 0 && this.reader.getColumn() < indent)) {
                 break;
             }
