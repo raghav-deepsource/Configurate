@@ -16,18 +16,21 @@
  */
 package org.spongepowered.configurate.yaml;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.BasicConfigurationNode;
 import org.spongepowered.configurate.CommentedConfigurationNodeIntermediary;
+import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.ConfigurationNodeFactory;
+import org.spongepowered.configurate.loader.ParsingException;
 import org.yaml.snakeyaml.events.AliasEvent;
 import org.yaml.snakeyaml.events.CollectionStartEvent;
 import org.yaml.snakeyaml.events.Event;
 import org.yaml.snakeyaml.events.NodeEvent;
 import org.yaml.snakeyaml.events.ScalarEvent;
 import org.yaml.snakeyaml.parser.ParserImpl;
+import org.yaml.snakeyaml.reader.StreamReader;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -62,28 +65,28 @@ final class YamlParser extends ParserImpl {
         return (ConfigurateScanner) this.scanner;
     }
 
-    Event requireEvent(final Event.ID type) throws IOException {
+    Event requireEvent(final Event.ID type) throws ParsingException {
         final Event next = peekEvent();
         if (!next.is(type)) {
-            throw new IOException("Expected next event of type" + type + " but was " + next.getEventId());
+            throw makeError("Expected next event of type" + type + " but was " + next.getEventId(), null);
         }
         return this.getEvent();
     }
 
     @SuppressWarnings("unchecked")
-    <T extends Event> T requireEvent(final Event.ID type, final Class<T> clazz) throws IOException {
+    <T extends Event> T requireEvent(final Event.ID type, final Class<T> clazz) throws ParsingException {
         final Event next = peekEvent();
         if (!next.is(type)) {
-            throw new IOException("Expected next event of type" + type + " but was " + next.getEventId());
+            throw makeError("Expected next event of type" + type + " but was " + next.getEventId(), null);
         }
         if (!clazz.isInstance(next)) {
-            throw new IOException("Expected event of type " + clazz + " but got a " + next.getClass());
+            throw makeError("Expected event of type " + clazz + " but got a " + next.getClass(), null);
         }
 
         return (T) this.getEvent();
     }
 
-    public <N extends ConfigurationNode> Stream<N> stream(final ConfigurationNodeFactory<N> factory) throws IOException {
+    public <N extends ConfigurationNode> Stream<N> stream(final ConfigurationNodeFactory<N> factory) throws ParsingException {
         requireEvent(Event.ID.StreamStart);
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(new Iterator<N>() {
             @Override
@@ -100,31 +103,34 @@ final class YamlParser extends ParserImpl {
                     final N node = factory.createNode();
                     document(node);
                     return node;
-                } catch (final IOException e) {
+                } catch (final ConfigurateException e) {
                     throw new RuntimeException(e); // TODO
                 }
             }
         }, Spliterator.IMMUTABLE | Spliterator.ORDERED | Spliterator.NONNULL), false);
     }
 
-    public void singleDocumentStream(final ConfigurationNode node) throws IOException {
+    public void singleDocumentStream(final ConfigurationNode node) throws ParsingException {
         requireEvent(Event.ID.StreamStart);
         document(node);
         requireEvent(Event.ID.StreamEnd);
     }
 
-    public void document(final ConfigurationNode node) throws IOException {
+    public void document(final ConfigurationNode node) throws ParsingException {
         requireEvent(Event.ID.DocumentStart);
         this.scanner().setCaptureComments(node instanceof CommentedConfigurationNodeIntermediary<?>);
         try {
             value(node);
+        } catch (final ConfigurateException ex) {
+            ex.initPath(node::path);
+            throw ex;
         } finally {
             this.aliases.clear();
         }
         requireEvent(Event.ID.DocumentEnd);
     }
 
-    void value(final ConfigurationNode node) throws IOException {
+    void value(final ConfigurationNode node) throws ParsingException {
         // We have to capture the comment before we peek ahead
         // peeking ahead will start consuming the next event and its comments
         applyComment(node);
@@ -157,17 +163,17 @@ final class YamlParser extends ParserImpl {
                 alias(node);
                 break;
             default:
-                throw new IOException("Unexpected event type " + peekEvent().getEventId());
+                throw makeError(node, "Unexpected event type " + peekEvent().getEventId(), null);
         }
     }
 
-    void scalar(final ConfigurationNode node) throws IOException {
+    void scalar(final ConfigurationNode node) throws ParsingException {
         final ScalarEvent scalar = requireEvent(Event.ID.Scalar, ScalarEvent.class);
         node.hint(YamlConfigurationLoader.SCALAR_STYLE, ScalarStyle.fromSnakeYaml(scalar.getScalarStyle()));
         node.raw(scalar.getValue()); // TODO:  tags and value types
     }
 
-    void mapping(final ConfigurationNode node) throws IOException {
+    void mapping(final ConfigurationNode node) throws ParsingException {
         requireEvent(Event.ID.MappingStart);
 
         node.raw(Collections.emptyMap());
@@ -181,7 +187,7 @@ final class YamlParser extends ParserImpl {
             }
             final ConfigurationNode child = node.node(keyHolder.raw());
             if (!child.virtual()) { // duplicate keys are forbidden (3.2.1.3)
-                throw new IOException("Duplicate key '" + child.key() + "' encountered!");
+                throw makeError(node, "Duplicate key '" + child.key() + "' encountered!", null);
             }
             value(node.node(child));
         }
@@ -189,7 +195,7 @@ final class YamlParser extends ParserImpl {
         requireEvent(Event.ID.MappingEnd);
     }
 
-    void sequence(final ConfigurationNode node) throws IOException {
+    void sequence(final ConfigurationNode node) throws ParsingException {
         requireEvent(Event.ID.SequenceStart);
         node.raw(Collections.emptyList());
 
@@ -200,14 +206,24 @@ final class YamlParser extends ParserImpl {
         requireEvent(Event.ID.SequenceEnd);
     }
 
-    void alias(final ConfigurationNode node) throws IOException {
+    void alias(final ConfigurationNode node) throws ParsingException {
         final AliasEvent event = requireEvent(Event.ID.Alias, AliasEvent.class);
         final ConfigurationNode target = this.aliases.get(event.getAnchor());
         if (target == null) {
-            throw new IOException("Unknown anchor '" + event.getAnchor() + "'");
+            throw makeError(node, "Unknown anchor '" + event.getAnchor() + "'", null);
         }
         node.from(target); // TODO: Reference node types
         node.hint(YamlConfigurationLoader.ANCHOR_ID, null); // don't duplicate alias
+    }
+
+    private ParsingException makeError(final @Nullable String message, final @Nullable Throwable error) {
+        final StreamReader reader = scanner().reader;
+        return new ParsingException(reader.getLine(), reader.getColumn(), null, message, error);
+    }
+
+    private ParsingException makeError(final ConfigurationNode node, final @Nullable String message, final @Nullable Throwable error) {
+        final StreamReader reader = scanner().reader;
+        return new ParsingException(node, reader.getLine(), reader.getColumn(), null, message, error);
     }
 
 }

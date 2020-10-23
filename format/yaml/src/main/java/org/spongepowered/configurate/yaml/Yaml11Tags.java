@@ -34,73 +34,113 @@ public final class Yaml11Tags {
         return "tag:yaml.org,2002:" + specific;
     }
 
-    // https://yaml.org/type/binary.html
+    /**
+     * A binary data tag.
+     *
+     * @see <a href="https://yaml.org/type/binary.html">tag:yaml.org,2002:binary</a>
+     */
     public static final Tag BINARY = Tag.builder()
-            .setUri(yamlOrg("binary"))
-            .setNativeType(byte[].class)
-            .setTargetPattern(Pattern.compile("base64 TODO"))
+            .uri(yamlOrg("binary"))
+            .nativeType(byte[].class)
+            .targetPattern(Pattern.compile("base64 TODO"))
             .build();
 
-    // https://yaml.org/type/bool.html
-    // Canonically these are y|n in YAML 1.1, but because YAML 1.2 moves to
-    // true|false only, we'll just use those
+    /**
+     * A boolean value.
+     *
+     * @implNote Canonically, these are y|n in YAML 1.1, but because YAML 1.2
+     *     will only support true|false, we will treat those as the default
+     *     output format.
+     * @see <a href="https://yaml.org/type/bool.html">tag:yaml.org,2002:bool</a>
+     */
     public static final Tag BOOL = Tag.builder()
-            .setUri(yamlOrg("bool"))
-            .setNativeType(Boolean.class)
-            .setTargetPattern(Pattern.compile("y|Y|yes|Yes|YES|n|N|no|No|NO"
+            .uri(yamlOrg("bool"))
+            .nativeType(Boolean.class)
+            .targetPattern(Pattern.compile("y|Y|yes|Yes|YES|n|N|no|No|NO"
                     + "|true|True|TRUE|false|False|FALSE"
                     + "|on|On|ON|off|Off|OFF"))
             .build();
 
-    // https://yaml.org/type/float.html
+    /**
+     * A floating-point number.
+     *
+     * @see <a href="https://yaml.org/type/float.html">tag:yaml.org,2002:float</a>
+     */
     public static final Tag FLOAT = Tag.builder()
-            .setUri(yamlOrg("float"))
-            .setNativeType(Double.class)
-            .setTargetPattern(Pattern.compile("[-+]?([0-9][0-9_]*)?\\.[0-9.]*([eE][-+][0-9]+)?" // base 10
+            .uri(yamlOrg("float"))
+            .nativeType(Double.class)
+            .targetPattern(Pattern.compile("[-+]?([0-9][0-9_]*)?\\.[0-9.]*([eE][-+][0-9]+)?" // base 10
                     + "|[-+]?[0-9][0-9_]*(:[0-5]?[0-9])+\\.[0-9]*" // base 60
                     + "|[-+]?\\.(inf|Inf|INF)" // infinity
                     + "|\\.(nan|NaN|NAN)")) // not a number
             .build();
 
-    // https://yaml.org/type/int.html
+    /**
+     * An integer.
+     *
+     * @see <a href="https://yaml.org/type/int.html">tag:yaml.org,2002:int</a>
+     */
     public static final Tag INT = Tag.builder()
-            .setUri(yamlOrg("int"))
-            .setNativeType(Long.class)
-            .setTargetPattern(Pattern.compile("[-+]?0b[0-1_]+" // base 2
+            .uri(yamlOrg("int"))
+            .nativeType(Long.class)
+            .targetPattern(Pattern.compile("[-+]?0b[0-1_]+" // base 2
                     + "|[-+]?0[0-7_]+" // base 8
                     + "|[-+]?(0|[1-9][0-9_]*)" // base 10
                     + "|[-+]?0x[0-9a-fA-F_]+" // base 16
                     + "|[-+]?[1-9][0-9_]*(:[0-5]?[0-9])+")) // base 60
             .build();
 
-    // https://yaml.org/type/merge.html
+    /**
+     * A mapping merge.
+     *
+     * <p>This will not be supported in Configurate until reference-type nodes
+     * are fully implemented.</p>
+     *
+     * @see <a href="https://yaml.org/type/merge.html">tag:yaml.org,2002:merge</a>
+     */
     public static final Tag MERGE = Tag.builder()
-            .setUri(yamlOrg("merge"))
-            .setNativeType(ConfigurationNode.class)
-            .setTargetPattern(Pattern.compile("<<"))
+            .uri(yamlOrg("merge"))
+            .nativeType(ConfigurationNode.class)
+            .targetPattern(Pattern.compile("<<"))
             .build();
 
-    // https://yaml.org/type/null.html
+    /**
+     * The value {@code null}.
+     *
+     * <p>Because Configurate has no distinction between a node with a
+     * {@code null} value, and a node that does not exist, this tag will most
+     * likely never be encountered in an in-memory representation.</p>
+     *
+     * @see <a href="https://yaml.org/type/null.html">tag:yaml.org,2002:null</a>
+     */
     public static final Tag NULL = Tag.builder()
-            .setUri(yamlOrg("null"))
-            .setNativeType(Void.class)
-            .setTargetPattern(Pattern.compile("~"
+            .uri(yamlOrg("null"))
+            .nativeType(Void.class)
+            .targetPattern(Pattern.compile("~"
                     + "|null|Null|NULL"
                     + "|$"))
             .build();
 
-    // https://yaml.org/type/str.html
+    /**
+     * Any string.
+     *
+     * @see <a href="https://yaml.org/type/str.html">tag:yaml.org,2002:str</a>
+     */
     public static final Tag STR = Tag.builder()
-            .setUri(yamlOrg("str"))
-            .setNativeType(String.class)
-            .setTargetPattern(Pattern.compile(".+")) // empty scalar is NULL
+            .uri(yamlOrg("str"))
+            .nativeType(String.class)
+            .targetPattern(Pattern.compile(".+")) // empty scalar is NULL
             .build();
 
-    // https://yaml.org/type/timestamp.html
+    /**
+     * A timestamp, containing date, time, and timezone.
+     *
+     * @see <a href="https://yaml.org/type/timestamp.html">tag:yaml.org,2002:timestamp</a>
+     */
     public static final Tag TIMESTAMP = Tag.builder()
-            .setUri(yamlOrg("timestamp"))
-            .setNativeType(ZonedDateTime.class)
-            .setTargetPattern(Pattern.compile("[0-9]{4}-[0-9]{2}-[0-9]{2}" // YYYY-MM-DD
+            .uri(yamlOrg("timestamp"))
+            .nativeType(ZonedDateTime.class)
+            .targetPattern(Pattern.compile("[0-9]{4}-[0-9]{2}-[0-9]{2}" // YYYY-MM-DD
                     + "|[0-9]{4}" // YYYY
                     + "-[0-9]{1,2}" // month
                     + "-[0-9]{1,2}" // day

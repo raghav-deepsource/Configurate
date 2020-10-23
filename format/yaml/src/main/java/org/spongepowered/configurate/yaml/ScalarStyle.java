@@ -19,7 +19,7 @@ package org.spongepowered.configurate.yaml;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.yaml.snakeyaml.DumperOptions;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 /**
@@ -27,14 +27,25 @@ import java.util.Map;
  */
 public enum ScalarStyle {
 
+    /**
+     * A double-quoted string.
+     *
+     * <p><pre>"hello world"</pre></p>
+     */
     DOUBLE_QUOTED(DumperOptions.ScalarStyle.DOUBLE_QUOTED),
+
+    /**
+     * A single-quoted string.
+     *
+     * <p><pre>'hello world'</pre></p>
+     */
     SINGLE_QUOTED(DumperOptions.ScalarStyle.SINGLE_QUOTED),
     UNQUOTED(DumperOptions.ScalarStyle.PLAIN),
     FOLDED(DumperOptions.ScalarStyle.FOLDED),
     LITERAL(DumperOptions.ScalarStyle.LITERAL)
     ;
 
-    private static final Map<DumperOptions.ScalarStyle, ScalarStyle> BY_SNAKE = new HashMap<>();
+    private static final Map<DumperOptions.ScalarStyle, ScalarStyle> BY_SNAKE = new EnumMap<>(DumperOptions.ScalarStyle.class);
     private final DumperOptions.ScalarStyle snake;
 
     ScalarStyle(final DumperOptions.ScalarStyle snake) {

@@ -48,10 +48,25 @@ import java.util.Set;
  */
 public final class YamlConfigurationLoader extends AbstractConfigurationLoader<CommentedConfigurationNode> {
 
+    /**
+     * The identifier for a YAML anchor that can be used to refer to the node
+     * this hint is set on.
+     */
     public static final RepresentationHint<String> ANCHOR_ID = RepresentationHint.of("anchor-id", String.class);
 
+    /**
+     * The YAML scalar style this node should attempt to use.
+     *
+     * <p>If the chosen scalar style would produce syntactically invalid YAML, a
+     * valid one will replace it.</p>
+     */
     public static final RepresentationHint<ScalarStyle> SCALAR_STYLE = RepresentationHint.of("scalar-style", ScalarStyle.class);
 
+    /**
+     * The YAML node style to use for collection nodes. A {@code null} value
+     * will instruct the emitter to fall back to the
+     * {@link Builder#nodeStyle()} setting.
+     */
     public static final RepresentationHint<NodeStyle> NODE_STYLE = RepresentationHint.of("node-style", NodeStyle.class);
 
     /**

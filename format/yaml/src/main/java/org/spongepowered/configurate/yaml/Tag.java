@@ -31,6 +31,11 @@ import java.util.regex.Pattern;
 @AutoValue
 public abstract class Tag {
 
+    /**
+     * Create a new builder for a {@link Tag}.
+     *
+     * @return a new builder
+     */
     public static Tag.Builder builder() {
         return new AutoValue_Tag.Builder();
     }
@@ -43,14 +48,14 @@ public abstract class Tag {
      *
      * @return tag uri, with `tag:` schema
      */
-    public abstract URI getUri();
+    public abstract URI uri();
 
     /**
      * The native type that maps to this tag.
      *
      * @return native type for tag
      */
-    public abstract Type getNativeType();
+    public abstract Type nativeType();
 
     /**
      * Pattern to test scalar values against when resolving this tag.
@@ -58,38 +63,73 @@ public abstract class Tag {
      * @return match pattern
      * @apiNote See §3.3.2 of YAML 1.1 spec
      */
-    public abstract Pattern getTargetPattern();
+    public abstract Pattern targetPattern();
 
     /**
      * Whether this tag is a global tag with a full namespace or a local one.
      *
      * @return if this is a global tag
      */
-    public final boolean isGlobal() {
-        return getUri().getScheme().equals("tag");
+    public final boolean global() {
+        return uri().getScheme().equals("tag");
     }
 
+    /**
+     * A builder for {@link Tag Tags}.
+     */
     @AutoValue.Builder
     public abstract static class Builder {
 
-        public abstract Builder setUri(URI url);
+        /**
+         * Set the URI used to refer to the tag.
+         *
+         * @param url canonical tag URI
+         * @return this builder
+         */
+        public abstract Builder uri(URI url);
 
-        public final Builder setUri(final String tagUrl) {
+        /**
+         * Set the URI used to refer to the tag, parsing a new URL from
+         * the argument.
+         *
+         * @param tagUrl canonical tag URI
+         * @return this builder
+         */
+        public final Builder uri(final String tagUrl) {
             try {
                 if (tagUrl.startsWith("!")) {
-                    return this.setUri(new URI(tagUrl.substring(1)));
+                    return this.uri(new URI(tagUrl.substring(1)));
                 } else {
-                    return this.setUri(new URI(tagUrl));
+                    return this.uri(new URI(tagUrl));
                 }
             } catch (final URISyntaxException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        public abstract Builder setNativeType(Type type);
+        /**
+         * The Java type that will be used to represent this value in the node
+         * structure.
+         *
+         * @param type type for the value
+         * @return this builder
+         */
+        public abstract Builder nativeType(Type type);
 
-        public abstract Builder setTargetPattern(Pattern targetPattern);
+        /**
+         * Pattern to match an undefined scalar string to this tag as an
+         * <em>implicit tag</em>.
+         *
+         * @param targetPattern pattern to match
+         * @return this builder
+         */
+        public abstract Builder targetPattern(Pattern targetPattern);
 
+        /**
+         * Create a new tag from the provided parameters.
+         *
+         * @return a new tag
+         */
         public abstract Tag build();
 
     }

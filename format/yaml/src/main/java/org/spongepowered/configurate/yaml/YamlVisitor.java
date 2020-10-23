@@ -17,10 +17,12 @@
 package org.spongepowered.configurate.yaml;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.ConfigurationVisitor;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.emitter.Emitter;
+import org.yaml.snakeyaml.error.YAMLException;
 import org.yaml.snakeyaml.events.DocumentEndEvent;
 import org.yaml.snakeyaml.events.DocumentStartEvent;
 import org.yaml.snakeyaml.events.Event;
@@ -39,7 +41,7 @@ import org.yaml.snakeyaml.resolver.Resolver;
 
 import java.io.IOException;
 
-final class YamlVisitor implements ConfigurationVisitor<YamlVisitor.State, Void, IOException> {
+final class YamlVisitor implements ConfigurationVisitor<YamlVisitor.State, Void, ConfigurateException> {
 
     private static final StreamStartEvent STREAM_START = new StreamStartEvent(null, null);
     private static final StreamEndEvent STREAM_END = new StreamEndEvent(null, null);
@@ -58,12 +60,12 @@ final class YamlVisitor implements ConfigurationVisitor<YamlVisitor.State, Void,
     }
 
     @Override
-    public State newState() throws IOException {
-        throw new UnsupportedOperationException("States cannot be created as a writer must be provided");
+    public State newState() throws ConfigurateException {
+        throw new ConfigurateException("States cannot be created as a writer must be provided");
     }
 
     @Override
-    public void beginVisit(final ConfigurationNode node, final State state) throws IOException {
+    public void beginVisit(final ConfigurationNode node, final State state) throws ConfigurateException {
         state.start = node;
         state.emit(STREAM_START);
         state.emit(new DocumentStartEvent(null, null, this.dumper.isExplicitStart(),
@@ -71,7 +73,7 @@ final class YamlVisitor implements ConfigurationVisitor<YamlVisitor.State, Void,
     }
 
     @Override
-    public void enterNode(final ConfigurationNode node, final State state) throws IOException {
+    public void enterNode(final ConfigurationNode node, final State state) throws ConfigurateException {
         if (node != state.start && node.key() != null && node.parent().isMap()) { // emit key
             final String value = String.valueOf(node.key());
             final Tag implicit = this.resolver.resolve(NodeId.scalar, value, true);
@@ -83,20 +85,20 @@ final class YamlVisitor implements ConfigurationVisitor<YamlVisitor.State, Void,
     }
 
     @Override
-    public void enterMappingNode(final ConfigurationNode node, final State state) throws IOException {
+    public void enterMappingNode(final ConfigurationNode node, final State state) throws ConfigurateException {
         final Tag implicit = this.resolver.resolve(NodeId.mapping, null, true);
         state.emit(new MappingStartEvent(anchor(node), implicit.toString(), true, null, null, NodeStyle.asSnakeYaml(determineStyle(node))));
     }
 
     @Override
-    public void enterListNode(final ConfigurationNode node, final State state) throws IOException {
+    public void enterListNode(final ConfigurationNode node, final State state) throws ConfigurateException {
         final Tag implicit = this.resolver.resolve(NodeId.sequence, null, true);
         state.emit(new SequenceStartEvent(anchor(node), implicit.getValue(), true,
                 null, null, NodeStyle.asSnakeYaml(determineStyle(node))));
     }
 
     @Override
-    public void enterScalarNode(final ConfigurationNode node, final State state) throws IOException {
+    public void enterScalarNode(final ConfigurationNode node, final State state) throws ConfigurateException {
         final String value = String.valueOf(node.getString());
         final Tag implicit = this.resolver.resolve(NodeId.scalar, value, true);
         final Tag explicit = this.resolver.resolve(NodeId.scalar, value, true);
@@ -108,17 +110,17 @@ final class YamlVisitor implements ConfigurationVisitor<YamlVisitor.State, Void,
     // TODO: emit alias events for enterReferenceNode
 
     @Override
-    public void exitMappingNode(final ConfigurationNode node, final State state) throws IOException {
+    public void exitMappingNode(final ConfigurationNode node, final State state) throws ConfigurateException {
         state.emit(MAPPING_END);
     }
 
     @Override
-    public void exitListNode(final ConfigurationNode node, final State state) throws IOException {
+    public void exitListNode(final ConfigurationNode node, final State state) throws ConfigurateException {
         state.emit(SEQUENCE_END);
     }
 
     @Override
-    public Void endVisit(final State state) throws IOException {
+    public Void endVisit(final State state) throws ConfigurateException {
         state.emit(DOCUMENT_END);
         state.emit(STREAM_END);
         return null;
@@ -140,8 +142,12 @@ final class YamlVisitor implements ConfigurationVisitor<YamlVisitor.State, Void,
             this.emit = emit;
         }
 
-        public void emit(final Event event) throws IOException {
-            this.emit.emit(event);
+        public void emit(final Event event) throws ConfigurateException {
+            try {
+                this.emit.emit(event);
+            } catch (final YAMLException | IOException ex) {
+                throw new ConfigurateException(ex);
+            }
         }
 
     }

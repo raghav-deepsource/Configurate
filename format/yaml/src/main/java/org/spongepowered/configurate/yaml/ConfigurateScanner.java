@@ -183,7 +183,7 @@ final class ConfigurateScanner implements Scanner { // Configurate: rename + pac
         // 32-bit Unicode (Supplementary characters are supported)
         ESCAPE_CODES.put(Character.valueOf('U'), 8);
     }
-    private final StreamReader reader;
+    final StreamReader reader; // Configurate: private -> package-private
     // Had we reached the end of the stream?
     private boolean done = false;
 

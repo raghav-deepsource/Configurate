@@ -24,12 +24,14 @@ import org.spongepowered.configurate.util.UnmodifiableCollections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A collection of tags that are understood when reading a document.
+ */
 public final class TagRepository {
 
     private final List<Tag> tags;
     private final Map<Class<?>, Tag> byErasedType;
     private final Map<String, Tag> byName;
-
 
     /**
      * Create a new tag repository.
@@ -45,19 +47,25 @@ public final class TagRepository {
         this.tags = tags;
         this.byErasedType = UnmodifiableCollections.buildMap(map -> {
             for (final Tag tag : this.tags) {
-                map.put(erase(tag.getNativeType()), tag);
+                map.put(erase(tag.nativeType()), tag);
             }
         });
         this.byName = UnmodifiableCollections.buildMap(map -> {
             for (final Tag tag : this.tags) {
-                map.put(tag.getUri().toString(), tag);
+                map.put(tag.uri().toString(), tag);
             }
         });
     }
 
+    /**
+     * Determine the implicit tag for a scalar value.
+     *
+     * @param scalar scalar to test
+     * @return the first matching tag
+     */
     public @Nullable Tag forInput(final String scalar) {
         for (final Tag tag : this.tags) {
-            if (tag.getTargetPattern().matcher(scalar).matches()) {
+            if (tag.targetPattern().matcher(scalar).matches()) {
                 return tag;
             }
         }
