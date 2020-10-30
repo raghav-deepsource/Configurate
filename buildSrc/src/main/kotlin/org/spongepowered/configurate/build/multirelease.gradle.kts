@@ -20,7 +20,7 @@ fun JavaToolchainSpec.applyVersion(
     version: Provider<TargetVersion>,
     strictVersion: Provider<Boolean>,
     baseVersion: Provider<TargetVersion>,
-    forExec: Boolean = true
+    forExec: Boolean = false
 ) {
     this.languageVersion.set(version.flatMap { makeLanguageVersion(it, strictVersion, baseVersion, forExec) })
 }
@@ -33,7 +33,7 @@ fun JavaToolchainSpec.applyVersion(
     version: TargetVersion,
     strictVersion: Provider<Boolean>,
     baseVersion: Provider<TargetVersion>,
-    forExec: Boolean = true
+    forExec: Boolean = false
 ) {
     this.languageVersion.set(makeLanguageVersion(version, strictVersion, baseVersion, forExec))
 }
