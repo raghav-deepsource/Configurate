@@ -40,6 +40,7 @@ public class RecordDiscovererTest {
 
     @Test
     void testDeserializeToRecord() throws SerializationException {
+        System.out.println("Running Java 15 tests");
         final var node = BasicConfigurationNode.root(n -> {
             n.node("name").raw("Hello");
             n.node("testable").raw(13);

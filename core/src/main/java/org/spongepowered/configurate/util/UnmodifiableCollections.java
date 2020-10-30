@@ -73,6 +73,26 @@ public final class UnmodifiableCollections {
     }
 
     /**
+     * Creates an unmodifiable copy of the given {@link Map} instance.
+     *
+     * @param original the map to be copied
+     * @param <K> the type of every key in the entry
+     * @param <V> the type of every value in the entry
+     * @return a unmodifiable copy of the given {@link Map} instance
+     */
+    public static <K, V> Map<K, V> copyOf(final Map<? extends K, ? extends V> original) {
+        switch (original.size()) {
+            case 0:
+                return Collections.emptyMap();
+            case 1:
+                final Map.Entry<? extends K, ? extends V> entry = original.entrySet().iterator().next();
+                return Collections.singletonMap(entry.getKey(), entry.getValue());
+            default:
+                return Collections.unmodifiableMap(new LinkedHashMap<>(original));
+        }
+    }
+
+    /**
      * Creates an unmodifiable copy of the given array as a list, preserving
      * order.
      *

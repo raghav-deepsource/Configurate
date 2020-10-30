@@ -55,6 +55,18 @@ public final class UnmodifiableCollections {
     }
 
     /**
+     * Creates an unmodifiable copy of the given {@link Map} instance.
+     *
+     * @param original the map to be copied
+     * @param <K> the type of every key in the entry
+     * @param <V> the type of every value in the entry
+     * @return a unmodifiable copy of the given {@link Map} instance
+     */
+    public static <K, V> Map<K, V> copyOf(final Map<? extends K, ? extends V> original) {
+        return Map.copyOf(original);
+    }
+
+    /**
      * Creates an unmodifiable copy of the given array as a list, preserving
      * order.
      *

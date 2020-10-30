@@ -24,8 +24,9 @@ indra {
     }
 
     configurePublications {
+        artifactId = archiveName
+
         pom {
-            artifactId = archiveName
 
             description.set(
                 """
